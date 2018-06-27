@@ -17,8 +17,7 @@ from points_organizer import PointsOrganizer
 
 STATE_COUNT_THRESHOLD = 3
 IMAGE_CLASSIFICATION_CYCLE = 1
-MIN_DETECTION_DIST = 18.0
-MAX_DETECTION_DIST = 90.0
+MAX_DETECTION_DIST = 100.0
 
 class TLDetector(object):
     def __init__(self):
@@ -148,7 +147,7 @@ class TLDetector(object):
 
                 dist = math.sqrt((self.pose.pose.position.x - closest_light.pose.pose.position.x)**2 +
                                  (self.pose.pose.position.y - closest_light.pose.pose.position.y)**2)
-                if dist > MAX_DETECTION_DIST or dist < MIN_DETECTION_DIST:
+                if dist > MAX_DETECTION_DIST:
                     return -1, TrafficLight.UNKNOWN
 
                 # Getting the stop line associated with the closest light

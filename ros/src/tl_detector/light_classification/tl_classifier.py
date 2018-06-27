@@ -7,8 +7,8 @@ import rospy
 from styx_msgs.msg import TrafficLight
 
 
-CLASSIFIER_MODEL_WEIGHTS_FILE = 'light_classification/classifier_model_a01_weights.h5'
-CLASSIFIER_MODEL_YAML_FILE = 'light_classification/classifier_model_a01.yaml'
+CLASSIFIER_MODEL_WEIGHTS_FILE = 'light_classification/classifier_model_c01_weights.h5'
+CLASSIFIER_MODEL_YAML_FILE = 'light_classification/classifier_model_c01.yaml'
 
 
 class TLClassifier(object):
@@ -43,4 +43,7 @@ class TLClassifier(object):
             return TrafficLight.GREEN
         if pred == 1:
             return TrafficLight.YELLOW
-        return TrafficLight.RED
+        if pred == 2:
+            return TrafficLight.RED
+
+        return TrafficLight.UNKNOWN
