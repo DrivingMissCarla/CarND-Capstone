@@ -17,6 +17,8 @@ from points_organizer import PointsOrganizer
 
 STATE_COUNT_THRESHOLD = 3
 IMAGE_CLASSIFICATION_CYCLE = 1
+MIN_DETECTION_DIST = 18.0
+MAX_DETECTION_DIST = 90.0
 
 class TLDetector(object):
     def __init__(self):
@@ -106,6 +108,7 @@ class TLDetector(object):
             self.upcoming_red_light_pub.publish(Int32(self.last_wp))
         self.state_count += 1
 
+
     def get_light_state(self, light):
         """Determines the current color of the traffic light
         Args:
@@ -114,15 +117,15 @@ class TLDetector(object):
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
         """
         # For testing just return light state
-        return light.state
-        """
+        #return light.state
+
         if(not self.has_image):
             self.prev_light_loc = None
             return False
         cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
-        #Get classification
+        # Getting classification
         return self.light_classifier.get_classification(cv_image)
-        """
+
 
     def process_traffic_lights(self):
         """Finds closest visible traffic light, if one exists, and determines its
@@ -142,6 +145,12 @@ class TLDetector(object):
 
             if closest_light_idx is not None:
                 closest_light = self.lights[closest_light_idx]
+
+                dist = math.sqrt((self.pose.pose.position.x - closest_light.pose.pose.position.x)**2 +
+                                 (self.pose.pose.position.y - closest_light.pose.pose.position.y)**2)
+                if dist > MAX_DETECTION_DIST or dist < MIN_DETECTION_DIST:
+                    return -1, TrafficLight.UNKNOWN
+
                 # Getting the stop line associated with the closest light
                 closest_stop_line = self.stop_line_positions[closest_light_idx]
 
