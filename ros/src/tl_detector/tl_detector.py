@@ -15,9 +15,11 @@ import math
 import numpy as np
 from points_organizer import PointsOrganizer
 
+
 STATE_COUNT_THRESHOLD = 3
 IMAGE_CLASSIFICATION_CYCLE = 1
 MAX_DETECTION_DIST = 100.0
+
 
 class TLDetector(object):
     def __init__(self):

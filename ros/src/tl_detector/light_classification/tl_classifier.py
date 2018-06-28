@@ -13,6 +13,7 @@ CLASSIFIER_MODEL_YAML_FILE = 'light_classification/classifier_model.yaml'
 
 class TLClassifier(object):
     def __init__(self):
+        rospy.loginfo('Loading Traffic Light Classifier ...')
         # Loading YAML and creating model
         classifier_yaml_file = open(CLASSIFIER_MODEL_YAML_FILE, 'r')
         loaded_classifier_model_yaml = classifier_yaml_file.read()
@@ -21,6 +22,7 @@ class TLClassifier(object):
         # Loading weights into the model
         self.classifier_model.load_weights(CLASSIFIER_MODEL_WEIGHTS_FILE)
         self.graph = tf.get_default_graph()
+        rospy.loginfo('Traffic Light Classifier is READY')
 
 
     def get_classification(self, image):
