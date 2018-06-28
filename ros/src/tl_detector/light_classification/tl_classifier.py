@@ -7,8 +7,8 @@ import rospy
 from styx_msgs.msg import TrafficLight
 
 
-CLASSIFIER_MODEL_WEIGHTS_FILE = 'light_classification/classifier_model_c01_weights.h5'
-CLASSIFIER_MODEL_YAML_FILE = 'light_classification/classifier_model_c01.yaml'
+CLASSIFIER_MODEL_WEIGHTS_FILE = 'light_classification/classifier_model_weights.h5'
+CLASSIFIER_MODEL_YAML_FILE = 'light_classification/classifier_model.yaml'
 
 
 class TLClassifier(object):
