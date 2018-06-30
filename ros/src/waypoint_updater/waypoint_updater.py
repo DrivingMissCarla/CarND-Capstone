@@ -20,7 +20,7 @@ as well as to verify your TL classifier.
 TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
-LOOKAHEAD_WPS = 35 # Number of waypoints we will publish.
+LOOKAHEAD_WPS = 40 # Number of waypoints we will publish.
 MAX_DECEL = 0.5 # Max deceleration
 STOPPING_WPS_BEFORE= 4 # Number of waypoints to stop before a traffic light line
 
@@ -88,14 +88,6 @@ class WaypointUpdater(object):
     def set_waypoint_velocity(self, waypoints, waypoint, velocity):
         waypoints[waypoint].twist.twist.linear.x = velocity
 
-    def distance(self, waypoints, wp1, wp2):
-        dist = 0
-        dl = lambda a, b: math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2  + (a.z-b.z)**2)
-        for i in range(wp1, wp2+1):
-            dist += dl(waypoints[wp1].pose.pose.position, waypoints[i].pose.pose.position)
-            wp1 = i
-        return dist
-
     def get_closest_waypoint_idx(self):
         x = self.pose.pose.position.x
         y = self.pose.pose.position.y
@@ -121,33 +113,43 @@ class WaypointUpdater(object):
 
     def get_final_waypoints(self):
         closest_idx = self.get_closest_waypoint_idx()
-        waypoints = self.base_waypoints.waypoints
 
         # We want the car to stop at the end of the track, so not doing module
-        farthest_idx = closest_idx + LOOKAHEAD_WPS
-        base_waypoints = waypoints[closest_idx : farthest_idx]
+        farthest_idx = min(closest_idx + LOOKAHEAD_WPS, len(self.base_waypoints.waypoints))
+        final_waypoints = self.base_waypoints.waypoints[closest_idx : farthest_idx]
 
         # Checking if there is no red traffic light ahead, to either continue or stopping/decelerating
         if self.stop_line_wp_idx == -1 or self.stop_line_wp_idx >= farthest_idx or self.stop_line_wp_idx < closest_idx:
-            return base_waypoints
+            return final_waypoints
         else:
-            return self.decelerate_waypoints(base_waypoints, closest_idx)
+            return self.decelerate_waypoints(final_waypoints, closest_idx)
 
     def decelerate_waypoints(self, waypoints, closest_idx):
         temp = []
-        for i, wp in enumerate(waypoints):
+
+        # Point where the car should stop
+        stop_idx = max(self.stop_line_wp_idx - STOPPING_WPS_BEFORE, closest_idx)
+        target_wp = self.base_waypoints.waypoints[stop_idx]
+        stop_idx -= closest_idx
+        dist = 0.0
+
+        for i in reversed(range(len(waypoints))):
+            wp = waypoints[i]
             p = Waypoint()
             p.pose = wp.pose
 
-            # Car stops at given point
-            stop_idx = max(self.stop_line_wp_idx - closest_idx - STOPPING_WPS_BEFORE, 0)
-            dist = self.distance(waypoints, i, stop_idx)
-            vel = math.sqrt(2 * MAX_DECEL * dist)
-            if vel < 1.0:
-                vel = 0.0
+            vel = 0.0
+
+            if i < stop_idx:
+                # Calculating the distance from the stop line
+                dist += math.sqrt((target_wp.pose.pose.position.x - wp.pose.pose.position.x)**2 +
+                                  (target_wp.pose.pose.position.y - wp.pose.pose.position.y)**2)
+                vel = math.sqrt(2 * MAX_DECEL * dist)
+                if vel < 1.0:
+                    vel = 0.0
 
             p.twist.twist.linear.x = min(vel, wp.twist.twist.linear.x)
-            temp.append(p)
+            temp.insert(0, p)
 
         return temp
 
