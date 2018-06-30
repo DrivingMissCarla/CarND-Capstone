@@ -2,12 +2,23 @@ import numpy as np
 from scipy.spatial import KDTree
 
 class PointsOrganizer(object):
+    """
+    Auxiliary object that helps to organize 2D points in order to
+    optimaze operations to find the closest points
+    """
+
     def __init__(self, points):
         self.points_tree = None
         if points is not None and len(points) > 0:
             self.points_tree = KDTree(points)
 
     def get_closest_point_idx(self, x, y, look_mode='CLOSEST'):
+        """
+        Retrieves the closest points in a 2D plane, given one of the following modes:
+          - AHEAD
+          - BEFORE
+          - CLOSEST (can be ahead or before, just considers the distance)
+        """
         if self.points_tree is None:
             return None
 

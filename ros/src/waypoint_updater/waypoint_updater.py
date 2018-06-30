@@ -20,9 +20,9 @@ as well as to verify your TL classifier.
 TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
-LOOKAHEAD_WPS = 30 # Number of waypoints we will publish.
+LOOKAHEAD_WPS = 35 # Number of waypoints we will publish.
 MAX_DECEL = 0.5 # Max deceleration
-STOPPING_POINTS_BEFORE = 4
+STOPPING_WPS_BEFORE= 4 # Number of waypoints to stop before a traffic light line
 
 
 class WaypointUpdater(object):
@@ -127,6 +127,7 @@ class WaypointUpdater(object):
         farthest_idx = closest_idx + LOOKAHEAD_WPS
         base_waypoints = waypoints[closest_idx : farthest_idx]
 
+        # Checking if there is no red traffic light ahead, to either continue or stopping/decelerating
         if self.stop_line_wp_idx == -1 or self.stop_line_wp_idx >= farthest_idx or self.stop_line_wp_idx < closest_idx:
             return base_waypoints
         else:
@@ -139,7 +140,7 @@ class WaypointUpdater(object):
             p.pose = wp.pose
 
             # Car stops at given point
-            stop_idx = max(self.stop_line_wp_idx - closest_idx - STOPPING_POINTS_BEFORE, 0)
+            stop_idx = max(self.stop_line_wp_idx - closest_idx - STOPPING_WPS_BEFORE, 0)
             dist = self.distance(waypoints, i, stop_idx)
             vel = math.sqrt(2 * MAX_DECEL * dist)
             if vel < 1.0:

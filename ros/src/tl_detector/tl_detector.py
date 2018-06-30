@@ -17,8 +17,10 @@ from points_organizer import PointsOrganizer
 
 
 STATE_COUNT_THRESHOLD = 3
-IMAGE_CLASSIFICATION_CYCLE = 1
-MAX_DETECTION_DIST = 100.0
+IMAGE_CLASSIFICATION_CYCLE = 1 # Size of cycle in which just an image is going to be classified,
+                               # p.e. 1 means all requested images are going to be classified,
+                               # 3 means one image of each 3 requested is going to be classified.
+MAX_DETECTION_DIST = 100.0 # Maximum distance allowed to detect/classify a traffic light
 
 
 class TLDetector(object):
@@ -80,8 +82,10 @@ class TLDetector(object):
 
     def image_cb(self, msg):
         self.image_counter += 1
+        # Verifies if the image is going to be classified according with the given cycle, otherwise skips
         if IMAGE_CLASSIFICATION_CYCLE > 1 and self.image_counter % IMAGE_CLASSIFICATION_CYCLE != 1:
             return
+
         """Identifies red lights in the incoming camera image and publishes the index
             of the waypoint closest to the red light's stop line to /traffic_waypoint
         Args:
@@ -90,7 +94,10 @@ class TLDetector(object):
         self.has_image = True
         self.camera_image = msg
         light_wp, state = self.process_traffic_lights()
+        self.publish_upcoming_red_light(light_wp, state)
 
+
+    def publish_upcoming_red_light(self, light_wp, state):
         '''
         Publish upcoming red lights at camera frequency.
         Each predicted state has to occur `STATE_COUNT_THRESHOLD` number
@@ -149,6 +156,8 @@ class TLDetector(object):
 
                 dist = math.sqrt((self.pose.pose.position.x - closest_light.pose.pose.position.x)**2 +
                                  (self.pose.pose.position.y - closest_light.pose.pose.position.y)**2)
+                # If the closest traffic light ahead is not within the maximum distance,
+                # skips classifying and publishing it
                 if dist > MAX_DETECTION_DIST:
                     return -1, TrafficLight.UNKNOWN
 
