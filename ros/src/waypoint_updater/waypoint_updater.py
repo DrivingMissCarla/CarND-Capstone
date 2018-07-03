@@ -20,7 +20,8 @@ as well as to verify your TL classifier.
 TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
-LOOKAHEAD_WPS = 40 # Number of waypoints we will publish.
+LOOKAHEAD_WPS = 200 # Number of waypoints we will publish.
+LOOKAHEAD_WPS_MASK = [0, 1, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 64, 96, 128, 192]
 MAX_DECEL = 0.5 # Max deceleration
 STOPPING_WPS_BEFORE= 4 # Number of waypoints to stop before a traffic light line
 
@@ -40,7 +41,7 @@ class WaypointUpdater(object):
 
         # Adding other member variables needed
         self.pose = None
-        self.velocity = None
+        #self.velocity = None
         self.base_waypoints = None
         self.waypoints_organizer = None
         self.stop_line_wp_idx = -1
@@ -113,45 +114,46 @@ class WaypointUpdater(object):
 
     def get_final_waypoints(self):
         closest_idx = self.get_closest_waypoint_idx()
-
         # We want the car to stop at the end of the track, so not doing module
         farthest_idx = min(closest_idx + LOOKAHEAD_WPS, len(self.base_waypoints.waypoints))
-        final_waypoints = self.base_waypoints.waypoints[closest_idx : farthest_idx]
+        final_waypoints = []
 
-        # Checking if there is no red traffic light ahead, to either continue or stopping/decelerating
         if self.stop_line_wp_idx == -1 or self.stop_line_wp_idx >= farthest_idx or self.stop_line_wp_idx < closest_idx:
-            return final_waypoints
+            # If there is no red traffic light ahead to consider, adding next waypoints
+            for i in LOOKAHEAD_WPS_MASK[::-1]:
+                idx = closest_idx + i
+                if idx < farthest_idx:
+                    final_waypoints.insert(0, self.base_waypoints.waypoints[idx])
+
         else:
-            return self.decelerate_waypoints(final_waypoints, closest_idx)
+            # If there is a red traffic light ahead to consider, modifying the waypoints velocity to stop
 
-    def decelerate_waypoints(self, waypoints, closest_idx):
-        temp = []
+            # Index of the closest waypoint point before the stop line of the traffic light
+            stop_idx = max(self.stop_line_wp_idx - STOPPING_WPS_BEFORE, closest_idx)
+            target_wp = self.base_waypoints.waypoints[stop_idx]
+            dist = 0.0
 
-        # Point where the car should stop
-        stop_idx = max(self.stop_line_wp_idx - STOPPING_WPS_BEFORE, closest_idx)
-        target_wp = self.base_waypoints.waypoints[stop_idx]
-        stop_idx -= closest_idx
-        dist = 0.0
-
-        for i in reversed(range(len(waypoints))):
-            wp = waypoints[i]
-            p = Waypoint()
-            p.pose = wp.pose
-
-            vel = 0.0
-
-            if i < stop_idx:
-                # Calculating the distance from the stop line
-                dist += math.sqrt((target_wp.pose.pose.position.x - wp.pose.pose.position.x)**2 +
-                                  (target_wp.pose.pose.position.y - wp.pose.pose.position.y)**2)
-                vel = math.sqrt(2 * MAX_DECEL * dist)
-                if vel < 1.0:
+            for i in LOOKAHEAD_WPS_MASK[::-1]:
+                idx = closest_idx + i
+                if idx < farthest_idx:
+                    wp = self.base_waypoints.waypoints[idx]
+                    p = Waypoint()
+                    p.pose = wp.pose
                     vel = 0.0
 
-            p.twist.twist.linear.x = min(vel, wp.twist.twist.linear.x)
-            temp.insert(0, p)
+                    if idx < stop_idx:
+                        # Calculating the distance from the stop line to the current waypoint
+                        dist += math.sqrt((target_wp.pose.pose.position.x - wp.pose.pose.position.x)**2 +
+                                          (target_wp.pose.pose.position.y - wp.pose.pose.position.y)**2)
+                        # Reducing the velocity according to the max acceleration
+                        vel = math.sqrt(2 * MAX_DECEL * dist)
+                        if vel < 1.0:
+                            vel = 0.0
 
-        return temp
+                    p.twist.twist.linear.x = min(vel, wp.twist.twist.linear.x)
+                    final_waypoints.insert(0, p)
+
+        return final_waypoints
 
 
 if __name__ == '__main__':
