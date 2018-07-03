@@ -120,10 +120,10 @@ class WaypointUpdater(object):
 
         if self.stop_line_wp_idx == -1 or self.stop_line_wp_idx >= farthest_idx or self.stop_line_wp_idx < closest_idx:
             # If there is no red traffic light ahead to consider, adding next waypoints
-            for i in LOOKAHEAD_WPS_MASK[::-1]:
+            for i in LOOKAHEAD_WPS_MASK:
                 idx = closest_idx + i
                 if idx < farthest_idx:
-                    final_waypoints.insert(0, self.base_waypoints.waypoints[idx])
+                    final_waypoints.append(self.base_waypoints.waypoints[idx])
 
         else:
             # If there is a red traffic light ahead to consider, modifying the waypoints velocity to stop
