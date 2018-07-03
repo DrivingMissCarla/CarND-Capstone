@@ -21,7 +21,7 @@ TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
 LOOKAHEAD_WPS = 200 # Number of waypoints we will publish.
-LOOKAHEAD_WPS_MASK = [0, 1, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 64, 96, 128, 192]
+LOOKAHEAD_WPS_MASK = [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 16, 20, 28, 36, 52, 68, 100, 132, 196]
 MAX_DECEL = 0.5 # Max deceleration
 STOPPING_WPS_BEFORE= 4 # Number of waypoints to stop before a traffic light line
 
