@@ -21,6 +21,7 @@ TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
 LOOKAHEAD_WPS = 200 # Number of waypoints we will publish.
+# Selected ahead waypoints' indexes to publish (in order to save interpolations' computating time)
 LOOKAHEAD_WPS_MASK = [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 16, 20, 28, 36, 52, 68, 100, 132, 196]
 MAX_DECEL = 0.5 # Max deceleration
 STOPPING_WPS_BEFORE= 4 # Number of waypoints to stop before a traffic light line
@@ -94,7 +95,7 @@ class WaypointUpdater(object):
         y = self.pose.pose.position.y
         closest_idx = self.waypoints_tree.query([x, y], 1)[1]
 
-        # Checking if closest is ahead or behind the vehicle
+        # Checking if closest point is ahead or behind the vehicle
         closest_waypoint = self.base_waypoints.waypoints[closest_idx]
         prev_waypoint = self.base_waypoints.waypoints[
             (closest_idx - 1) if closest_idx > 0 else (len(self.base_waypoints.waypoints) - 1)]
@@ -119,14 +120,14 @@ class WaypointUpdater(object):
         final_waypoints = []
 
         if self.stop_line_wp_idx == -1 or self.stop_line_wp_idx >= farthest_idx or self.stop_line_wp_idx < closest_idx:
-            # If there is no red traffic light ahead to consider, adding next waypoints
+            # If there is no red traffic light ahead, just adding next selected waypoints
             for i in LOOKAHEAD_WPS_MASK:
                 idx = closest_idx + i
                 if idx < farthest_idx:
                     final_waypoints.append(self.base_waypoints.waypoints[idx])
 
         else:
-            # If there is a red traffic light ahead to consider, modifying the waypoints velocity to stop
+            # If there is a red traffic light ahead, modifying the waypoints velocity to gradually stop
 
             # Index of the closest waypoint point before the stop line of the traffic light
             stop_idx = max(self.stop_line_wp_idx - STOPPING_WPS_BEFORE, closest_idx)
@@ -134,6 +135,8 @@ class WaypointUpdater(object):
             dist = 0.0
 
             for i in LOOKAHEAD_WPS_MASK[::-1]:
+                # For each one of the selected waypoints (starting from the farthest one),
+                # calculating the distance to the stop line and adjust the velocity in order to gradually stop
                 idx = closest_idx + i
                 if idx < farthest_idx:
                     wp = self.base_waypoints.waypoints[idx]
