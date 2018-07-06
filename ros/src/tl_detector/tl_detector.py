@@ -63,6 +63,9 @@ class TLDetector(object):
         self.state_count = 0
 
         self.stop_line_positions = self.config['stop_line_positions']
+        self.stop_line_organizer = PointsOrganizer(
+            [[stop_line[0], stop_line[1]] for stop_line in self.stop_line_positions])
+
         self.image_counter = 0
 
         rospy.spin()
@@ -78,8 +81,6 @@ class TLDetector(object):
 
     def traffic_cb(self, msg):
         self.lights = msg.lights
-        self.stop_line_organizer = PointsOrganizer(
-            [[light.pose.pose.position.x, light.pose.pose.position.y] for light in self.lights])
 
     def image_cb(self, msg):
         self.image_counter += 1
@@ -148,22 +149,22 @@ class TLDetector(object):
                 self.pose.pose.position.x, self.pose.pose.position.y, look_mode='AHEAD')
             closest_waypoint = self.waypoints.waypoints[closest_waypoint_idx]
 
-            # Getting the closest light ahead of the vehicle
-            closest_light_idx = self.stop_line_organizer.get_closest_point_idx(
+            # Getting the closest stop line ahead of the vehicle
+            closest_stop_line_idx = self.stop_line_organizer.get_closest_point_idx(
                 closest_waypoint.pose.pose.position.x, closest_waypoint.pose.pose.position.y, look_mode='AHEAD')
 
-            if closest_light_idx is not None:
-                closest_light = self.lights[closest_light_idx]
+            if closest_stop_line_idx is not None:
+                closest_light = self.lights[closest_stop_line_idx]
 
-                dist = math.sqrt((self.pose.pose.position.x - closest_light.pose.pose.position.x)**2 +
-                                 (self.pose.pose.position.y - closest_light.pose.pose.position.y)**2)
+                dist_to_light = math.sqrt((self.pose.pose.position.x - closest_light.pose.pose.position.x)**2 +
+                                          (self.pose.pose.position.y - closest_light.pose.pose.position.y)**2)
                 # If the closest traffic light ahead is not within the maximum distance,
                 # skips classifying and publishing it
-                if dist > MAX_DETECTION_DIST:
+                if dist_to_light > MAX_DETECTION_DIST:
                     return -1, TrafficLight.UNKNOWN
 
                 # Getting the stop line associated with the closest light
-                closest_stop_line = self.stop_line_positions[closest_light_idx]
+                closest_stop_line = self.stop_line_positions[closest_stop_line_idx]
 
                 # Getting the waypoint closest to stop line
                 stop_waypoint_idx = self.waypoints_organizer.get_closest_point_idx(
