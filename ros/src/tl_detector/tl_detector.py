@@ -66,6 +66,8 @@ class TLDetector(object):
         self.stop_line_organizer = PointsOrganizer(
             [[stop_line[0], stop_line[1]] for stop_line in self.stop_line_positions])
 
+        self.has_image = False
+        self.camera_image = None
         self.image_counter = 0
 
         rospy.spin()

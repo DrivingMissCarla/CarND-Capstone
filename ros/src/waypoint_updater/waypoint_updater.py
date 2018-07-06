@@ -59,10 +59,10 @@ class WaypointUpdater(object):
             rate.sleep()
 
     def publish_waypoints(self, final_waypoints):
-            lane = Lane()
-            lane.header = self.base_waypoints.header
-            lane.waypoints = final_waypoints
-            self.final_waypoints_pub.publish(lane)
+        lane = Lane()
+        lane.header = self.base_waypoints.header
+        lane.waypoints = final_waypoints
+        self.final_waypoints_pub.publish(lane)
 
     def pose_cb(self, msg):
         self.pose = msg
