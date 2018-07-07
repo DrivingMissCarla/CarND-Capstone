@@ -119,7 +119,7 @@ The velocity already been set in the way points in general adheres to to given m
 
 The ```tl_detector``` uses the traffic light classifier (which is stored in the files ```src/tl_detector/light_classification/classifier_model.yaml``` and ```src/tl_detector/light_classification/classifier_model_weights.h5```), to publish the found red and yellow lights (see lines 104 to 121 of ```src/tl_detector/tl_detector.py```), then in combination with a method to reduce the velocity on the ahead waypoints (see lines 130 to 158 of ```src/waypoint_updater/waypoint_updater.py```) provides the mechanism to stop when needed. You can see this mechanism in action in the following video.
 
-[![Capstone Project Run](http://img.youtube.com/vi/Y5bg1G2jTyI/0.jpg)](https://www.youtube.com/watch?v=Y5bg1G2jTyI)
+[![Capstone Project Run](http://img.youtube.com/vi/ga6i7Juu054/0.jpg)](https://www.youtube.com/watch?v=ga6i7Juu054)
 
 ### Stop and restart PID controllers depending on the state of ```/vehicle/dbw_enabled```
 
