@@ -12,7 +12,7 @@
 
 ## Background
 
-This is the project repo for the final project of the Udacity Self-Driving Car Nanodegree: Programming a Real Self-Driving Car. For more information about the project, see the project introduction [here](https://classroom.udacity.com/nanodegrees/nd013/parts/6047fe34-d93c-4f50-8336-b70ef10cb4b2/modules/e1a23b06-329a-4684-a717-ad476f0d8dff/lessons/462c933d-9f24-42d3-8bdc-a08a5fc866e4/concepts/5ab4b122-83e6-436d-850f-9f4d26627fd9).
+The System Integration project is the Capstone project of the Udacity Self-Driving Car Engineer Nanodegree. We used ROS ([Robot Operating System](http://wiki.ros.org/)) to allow different elements, such as traffic light detection and classification, trajectory planning and control, to communicate with each other. The software we developed will be tested on Carla, the Udacity Self Driving Car, which will drive autonomously on a test track. For more information, see the project introduction [here](https://classroom.udacity.com/nanodegrees/nd013/parts/6047fe34-d93c-4f50-8336-b70ef10cb4b2/modules/e1a23b06-329a-4684-a717-ad476f0d8dff/lessons/462c933d-9f24-42d3-8bdc-a08a5fc866e4/concepts/5ab4b122-83e6-436d-850f-9f4d26627fd9).
 
 ## Implemented Components
 
@@ -25,54 +25,13 @@ Once the ```waypoint_updater``` is publishing to ```/final_waypoints```, the ```
 #### Traffic Light Detection
 
 ##### Detection
-Detects the traffic light and its color from the ```/image_color``` topic, in order to do the color classification a CNN based in ResNet50 is used, the details of the model's building and training can be seen at https://github.com/DrivingMissCarla/Traffic-Light-Classifier (see file ```src/tl_detector/light_classification/tl_classifier.py```).
+Detects the traffic light and its color from the ```/image_color``` topic. In order to do the color classification a CNN based in ResNet50 is used. The details of the model's building and training can be seen at https://github.com/DrivingMissCarla/Traffic-Light-Classifier (see file ```src/tl_detector/light_classification/tl_classifier.py```).
 
 ##### Waypoint publishing
-When the traffic light color is identified, then the position (which can be found in ```/vehicle/traffic_lights```) of the light that require a stop (red or yellow) is published in ```/traffic_waypoint``` (see file ```src/tl_detector/tl_detector.py```).
+When the traffic light color is identified, the position (which can be found in ```/vehicle/traffic_lights```) of the light that requires a stop (red or yellow) is published in ```/traffic_waypoint``` (see file ```src/tl_detector/tl_detector.py```).
 
 #### Waypoint Updater (Full)
 Receives the position of red (or yellow) lights ahead from the topic ```/traffic_waypoint```, then changes waypoint target velocities before publishing to ```/final_waypoints``` in order to perform a stop (see file ```src/waypoint_updater/waypoint_updater.py```).
-
-## Usage
-
-1. Clone the project repository
-```bash
-git clone https://github.com/DrivingMissCarla/CarND-Capstone.git
-```
-
-2. Install python dependencies (if needed)
-```bash
-cd CarND-Capstone
-pip install -r requirements.txt
-```
-
-3. Make
-```bash
-cd ros
-catkin_make
-source devel/setup.sh
-```
-
-4. Run in the Simulator
-
-    4.1. Run styx
-    ```
-    roslaunch launch/styx.launch
-    ```
-
-    5.2. wait to see the mesage ```Traffic Light Classifier is READY``` in the console, meaning that the light classifier has been loaded
-
-    4.3. Run the simulator
-
-5. Run in Carla
-
-    5.1. Run site
-    ```
-    roslaunch launch/site.launch
-    ```
-
-    5.2. wait to see the message ```Traffic Light Classifier is READY``` in the console, meaning that the light classifier has been loaded
-
 
 ## Submission checklist and requirements
 
@@ -82,7 +41,7 @@ Please see this video of a successful run in the simulator:
 
 [![Capstone Project Run](http://img.youtube.com/vi/ga6i7Juu054/0.jpg)](https://www.youtube.com/watch?v=ga6i7Juu054)
 
-And/or this one with a few runs in the church lot:
+And this one with a few runs in the church lot:
 
 [![Capstone Project Run](http://img.youtube.com/vi/MBh4Rtx8Jcs/0.jpg)](https://www.youtube.com/watch?v=MBh4Rtx8Jcs).
 
@@ -90,30 +49,30 @@ And/or this one with a few runs in the church lot:
 
 No additional launch scripts were created or used other libraries than the provided with the original distribution.
 
-however, some extra files where included which are used by the already existing python scripts and they shouldn't cause problems when running:
-* ```src/tl_detector/points_organizer.py``` a helper class to sort 2D points an make more efficient to look for the closest points
+However, some extra files where included which are used by the already existing python scripts and they shouldn't cause problems when running:
+* ```src/tl_detector/points_organizer.py``` a helper class to sort 2D points and make more efficient to look for the closest points
 * ```src/tl_detector/light_classification/classifier_model.yaml``` the model's description of the CNN (based in ResNet50) used for the traffic light classifier
 * ```src/tl_detector/light_classification/classifier_model_weights.h5``` the file containing the weights used for the CNN used for the traffic light classifier
 
 ### Smoothly follow waypoints in the simulator
 
-In order to achieve this goal the closest waypoint (in the list of given waypoints) to the current position of the vehicle is searched, then following waypoints given sample length are published (see method ```get_final_waypoints()``` on line 117 of ```src/waypoint_update/waypoint_updater.py```), these waypoints are used by the backend processes to do the necessary interpolation to follow the track.
+In order to achieve this goal the closest waypoint (in the list of given waypoints) to the current position of the vehicle is searched, then following waypoints given sample length are published (see method ```get_final_waypoints()``` on line 117 of ```src/waypoint_update/waypoint_updater.py```). These waypoints are used by the backend processes to do the necessary interpolation to follow the track.
 
 An additional change was made in ```src/waypoint_follower/src/pure_pursuit_core.cpp``` line 257 to make sure the vehicle is always following the waypoints.
 
-### Respect the target top speed set for the waypoints' ```twist.twist.linear.x``` in ```waypoint_loader.py```
+### Respect the target top speed set for the waypoints ```twist.twist.linear.x``` in ```waypoint_loader.py```
 
-No modifications were made to ```twist.twist.linear.x``` of the retrieved way points, except when decelerating in order to stop when a red (or yellow) light is detected ahead, but in that case the minimum of the already set velocity and the one calculated by decelerating method is chosen (see line 157 of ```src/waypoint_update/waypoint_updater.py```), meaning that the target top speed is respected.
+No modifications were made to ```twist.twist.linear.x``` of the retrieved way points, except when decelerating in order to stop when a red (or yellow) light is detected ahead. In that case, the minimum between the already set velocity and the one calculated by decelerating method is chosen (see line 157 of ```src/waypoint_update/waypoint_updater.py```), meaning that the target top speed is respected.
 
 Please see the following run targeted to 35 mph (56km/h).
 
 [![Capstone Project Run at 35mph](http://img.youtube.com/vi/ywwam9i1X_E/0.jpg)](https://www.youtube.com/watch?v=ywwam9i1X_E)
 
-Please see the following run targeted to 60 mph (96km/h).
+Please see the following run targeted to 50 mph (96km/h).
 
 [![Capstone Project Run at 35mph](http://img.youtube.com/vi/kK9VyfS2COQ/0.jpg)](https://www.youtube.com/watch?v=kK9VyfS2COQ)
 
-The velocity already been set in the way points in general adheres to to given maximum/target. However, it is worth to mention that at times it might slightly exceed it due to the oscillating nature of the twist controller.
+The velocity already been set in the waypoints in general adheres to the given maximum/target. However, it is worth to mention that at times it might slightly exceed it due to the oscillating nature of the twist controller.
 
 ### Stop at traffic lights when needed.
 
@@ -125,9 +84,9 @@ The ```tl_detector``` uses the traffic light classifier (which is stored in the 
 
 The state of ```/vehicle/dbw_enabled``` is captured by the ```dbw_node``` (see lines 65 and 90-91 of ```src/twist_controller/dbw_node.py```), this state is passed to the ```twist_controller``` (see lines 83-84 of ```src/twist_controller/dbw_node.py```), then the twist controller does a reset if ```/vehicle/dbw_enabled``` is not enabled or does it is normal work if it is enabled (see lines 40-66 of ```src/twist_controller/twist_controller.py```).
 
-### Publish throttle, steering, and brake commands at 50hz
+### Publish throttle, steering, and brake commands at 50Hz
 
-In the the ```dbw_node``` is implemented the loop in charge of publishing the throttle, steering and brake commands with a rate of 50hz (see lines 74 and 78-88 of ```src/twist_controller/dbw_node.py```).
+In the the ```dbw_node``` is implemented the loop in charge of publishing the throttle, steering and brake commands with a rate of 50Hz (see lines 74 and 78-88 of ```src/twist_controller/dbw_node.py```).
 
 ## Apendix
 
@@ -189,7 +148,9 @@ catkin_make
 source devel/setup.sh
 roslaunch launch/styx.launch
 ```
-4. Run the simulator
+4. Wait to see the mesage ```Traffic Light Classifier is READY``` in the console, meaning that the light classifier has been loaded
+
+5. Run the simulator
 
 #### Real world testing
 1. Download [training bag](https://s3-us-west-1.amazonaws.com/udacity-selfdrivingcar/traffic_light_bag_file.zip) that was recorded on the Udacity self-driving car.
@@ -206,4 +167,6 @@ rosbag play -l traffic_light_bag_file/traffic_light_training.bag
 cd CarND-Capstone/ros
 roslaunch launch/site.launch
 ```
-5. Confirm that traffic light detection works on real life images
+5. Wait to see the message ```Traffic Light Classifier is READY``` in the console, meaning that the light classifier has been loaded
+
+6. Confirm that traffic light detection works on real life images
