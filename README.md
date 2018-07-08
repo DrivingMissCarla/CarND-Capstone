@@ -152,22 +152,10 @@ roslaunch launch/styx.launch
 
 5. Run the simulator
 
-#### Real world testing
-1. Download [training bag](https://s3-us-west-1.amazonaws.com/udacity-selfdrivingcar/traffic_light_bag_file.zip) that was recorded on the Udacity self-driving car.
+### Performance issues during simulator tests
 
-2. Unzip the file
-```bash
-unzip traffic_light_bag_file.zip
-```
-3. Play the bag file
-```bash
-rosbag play -l traffic_light_bag_file/traffic_light_training.bag
-```
-4. Launch your project in site mode
-```bash
-cd CarND-Capstone/ros
-roslaunch launch/site.launch
-```
-5. Wait to see the message ```Traffic Light Classifier is READY``` in the console, meaning that the light classifier has been loaded
+Two branches have been added in the repository to handle latency issues during simulations with Udacity's workspace and VM if you don't have a GPU:
 
-6. Confirm that traffic light detection works on real life images
+* 'sim': the publish rate of throttle, steering and brake commands is set at 10Hz (instead of 50Hz).
+
+* 'noclassif': the use of the classifier is disabled.
