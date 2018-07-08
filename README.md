@@ -156,6 +156,6 @@ roslaunch launch/styx.launch
 
 Two branches have been added in the repository to handle latency issues during simulations with Udacity's workspace and VM if you don't have a GPU:
 
-* 'sim': the publish rate of throttle, steering and brake commands is set at 10Hz (instead of 50Hz).
+* [sim](https://github.com/DrivingMissCarla/CarND-Capstone/tree/sim): the publish rate of throttle, steering and brake commands is set at 10Hz (instead of 50Hz).
 
-* 'noclassif': the use of the classifier is disabled.
+* [noclassif](https://github.com/DrivingMissCarla/CarND-Capstone/tree/noclassif): the light classifier is disabled and the current state of the traffic lights is used instead.
