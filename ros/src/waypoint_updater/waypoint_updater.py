@@ -37,7 +37,7 @@ class WaypointUpdater(object):
         #self.velocity = None
         self.base_waypoints = None
         self.waypoints_tree = None
-        self.stop_line_wp_idx = -1
+        self.stop_line_wp_idx = None
 
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
@@ -118,44 +118,72 @@ class WaypointUpdater(object):
         closest_idx = self.get_closest_waypoint_idx()
         # We want the car to stop at the end of the track, so not doing module
         farthest_idx = min(closest_idx + LOOKAHEAD_WPS, len(self.base_waypoints.waypoints))
-        final_waypoints = []
 
-        if self.stop_line_wp_idx == -1 or self.stop_line_wp_idx >= farthest_idx or self.stop_line_wp_idx < closest_idx:
+        if self.stop_line_wp_idx is None:
+            # If the traffic light classifier is not ready, keep stopped i.e. publish waypoint with zero speed
+            return self.keep_stopped(closest_idx, farthest_idx)
+
+        elif self.stop_line_wp_idx == -1 or self.stop_line_wp_idx >= farthest_idx or self.stop_line_wp_idx < closest_idx:
             # If there is no red traffic light ahead, just adding next selected waypoints
-            for i in LOOKAHEAD_WPS_MASK:
-                idx = closest_idx + i
-                if idx < farthest_idx:
-                    final_waypoints.append(self.base_waypoints.waypoints[idx])
+            return self.accelerate_to_target_velocity(closest_idx, farthest_idx)
 
         else:
             # If there is a red traffic light ahead, modifying the waypoints velocity to gradually stop
+            return self.stop_at_stop_line(closest_idx, farthest_idx)
 
-            # Index of the closest waypoint point before the stop line of the traffic light
-            stop_idx = max(self.stop_line_wp_idx - STOPPING_WPS_BEFORE, closest_idx)
-            target_wp = self.base_waypoints.waypoints[stop_idx]
-            dist = 0.0
+    def keep_stopped(self, closest_idx, farthest_idx):
+        final_waypoints = []
 
-            for i in LOOKAHEAD_WPS_MASK[::-1]:
-                # For each one of the selected waypoints (starting from the farthest one),
-                # calculating the distance to the stop line and adjust the velocity in order to gradually stop
-                idx = closest_idx + i
-                if idx < farthest_idx:
-                    wp = self.base_waypoints.waypoints[idx]
-                    p = Waypoint()
-                    p.pose = wp.pose
-                    vel = 0.0
+        for i in LOOKAHEAD_WPS_MASK:
+            idx = closest_idx + i
+            if idx < farthest_idx:
+                wp = self.base_waypoints.waypoints[idx]
+                p = Waypoint()
+                p.pose = wp.pose
+                p.twist.twist.linear.x = 0.0
+                final_waypoints.append(p)
 
-                    if idx < stop_idx:
-                        # Calculating the distance from the stop line to the current waypoint
-                        dist += math.sqrt((target_wp.pose.pose.position.x - wp.pose.pose.position.x)**2 +
-                                          (target_wp.pose.pose.position.y - wp.pose.pose.position.y)**2)
-                        # Reducing the velocity according to the max acceleration
-                        vel = math.sqrt(2 * MAX_DECEL * dist)
-                        if vel < 1.0:
-                            vel = 0.0
+        return final_waypoints
 
-                    p.twist.twist.linear.x = min(vel, wp.twist.twist.linear.x)
-                    final_waypoints.insert(0, p)
+    def accelerate_to_target_velocity(self, closest_idx, farthest_idx):
+        final_waypoints = []
+
+        for i in LOOKAHEAD_WPS_MASK:
+            idx = closest_idx + i
+            if idx < farthest_idx:
+                wp = self.base_waypoints.waypoints[idx]
+                final_waypoints.append(wp)
+
+        return final_waypoints
+
+    def stop_at_stop_line(self, closest_idx, farthest_idx):
+        final_waypoints = []
+        # Index of the closest waypoint point before the stop line of the traffic light
+        stop_idx = max(self.stop_line_wp_idx - STOPPING_WPS_BEFORE, closest_idx)
+        target_wp = self.base_waypoints.waypoints[stop_idx]
+        dist = 0.0
+
+        for i in LOOKAHEAD_WPS_MASK[::-1]:
+            # For each one of the selected waypoints (starting from the farthest one),
+            # calculating the distance to the stop line and adjust the velocity in order to gradually stop
+            idx = closest_idx + i
+            if idx < farthest_idx:
+                wp = self.base_waypoints.waypoints[idx]
+                p = Waypoint()
+                p.pose = wp.pose
+                vel = 0.0
+
+                if idx < stop_idx:
+                    # Calculating the distance from the stop line to the current waypoint
+                    dist += math.sqrt((target_wp.pose.pose.position.x - wp.pose.pose.position.x)**2 +
+                                      (target_wp.pose.pose.position.y - wp.pose.pose.position.y)**2)
+                    # Reducing the velocity according to the max acceleration
+                    vel = math.sqrt(2 * MAX_DECEL * dist)
+                    if vel < 1.0:
+                        vel = 0.0
+
+                p.twist.twist.linear.x = min(vel, wp.twist.twist.linear.x)
+                final_waypoints.insert(0, p)
 
         return final_waypoints
 
