@@ -27,12 +27,32 @@ class TLDetector(object):
     def __init__(self):
         rospy.init_node('tl_detector')
 
+        self.bridge = CvBridge()
+        self.light_classifier = TLClassifier()
+        self.listener = tf.TransformListener()
+
         self.pose = None
         self.waypoints = None
         self.waypoints_organizer = None
         self.camera_image = None
         self.lights = []
         self.stop_line_organizer = None
+
+        config_string = rospy.get_param("/traffic_light_config")
+        self.config = yaml.load(config_string)
+
+        self.state = TrafficLight.UNKNOWN
+        self.last_state = TrafficLight.UNKNOWN
+        self.last_wp = -1
+        self.state_count = 0
+
+        self.stop_line_positions = self.config['stop_line_positions']
+        self.stop_line_organizer = PointsOrganizer(
+            [[stop_line[0], stop_line[1]] for stop_line in self.stop_line_positions])
+
+        self.has_image = False
+        self.camera_image = None
+        self.image_counter = 0
 
         sub1 = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         sub2 = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
@@ -48,27 +68,7 @@ class TLDetector(object):
         sub6 = rospy.Subscriber('/image_color', Image, self.image_cb, queue_size=1,
                                 buff_size=100*1024*1024, tcp_nodelay=True)
 
-        config_string = rospy.get_param("/traffic_light_config")
-        self.config = yaml.load(config_string)
-
         self.upcoming_red_light_pub = rospy.Publisher('/traffic_waypoint', Int32, queue_size=1)
-
-        self.bridge = CvBridge()
-        self.light_classifier = TLClassifier()
-        self.listener = tf.TransformListener()
-
-        self.state = TrafficLight.UNKNOWN
-        self.last_state = TrafficLight.UNKNOWN
-        self.last_wp = -1
-        self.state_count = 0
-
-        self.stop_line_positions = self.config['stop_line_positions']
-        self.stop_line_organizer = PointsOrganizer(
-            [[stop_line[0], stop_line[1]] for stop_line in self.stop_line_positions])
-
-        self.has_image = False
-        self.camera_image = None
-        self.image_counter = 0
 
         rospy.spin()
 

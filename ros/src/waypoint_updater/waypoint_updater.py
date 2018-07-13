@@ -32,6 +32,13 @@ class WaypointUpdater(object):
     def __init__(self):
         rospy.init_node('waypoint_updater')
 
+        # Adding other member variables needed
+        self.pose = None
+        #self.velocity = None
+        self.base_waypoints = None
+        self.waypoints_tree = None
+        self.stop_line_wp_idx = -1
+
         rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         #rospy.Subscriber('/current_velocity', TwistStamped, self.velocity_cb)
         rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
@@ -41,19 +48,12 @@ class WaypointUpdater(object):
 
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
-        # Adding other member variables needed
-        self.pose = None
-        #self.velocity = None
-        self.base_waypoints = None
-        self.waypoints_organizer = None
-        self.stop_line_wp_idx = -1
-
         self.loop()
 
     def loop(self):
         rate = rospy.Rate(FREQUENCY)
         while not rospy.is_shutdown():
-            if self.pose and self.base_waypoints:
+            if self.pose and self.base_waypoints and self.waypoints_tree:
                 # Getting the final waypoints
                 final_waypoints = self.get_final_waypoints()
                 self.publish_waypoints(final_waypoints)
