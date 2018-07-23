@@ -37,7 +37,7 @@ class WaypointUpdater(object):
         #self.velocity = None
         self.base_waypoints = None
         self.waypoints_tree = None
-        self.stop_line_wp_idx = None
+        self.stop_line_wp_idx = -1
 
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
@@ -119,31 +119,13 @@ class WaypointUpdater(object):
         # We want the car to stop at the end of the track, so not doing module
         farthest_idx = min(closest_idx + LOOKAHEAD_WPS, len(self.base_waypoints.waypoints))
 
-        if self.stop_line_wp_idx is None:
-            # If the traffic light classifier is not ready, keep stopped i.e. publish waypoint with zero speed
-            return self.keep_stopped(closest_idx, farthest_idx)
-
-        elif self.stop_line_wp_idx == -1 or self.stop_line_wp_idx >= farthest_idx or self.stop_line_wp_idx < closest_idx:
+        if self.stop_line_wp_idx == -1 or self.stop_line_wp_idx >= farthest_idx or self.stop_line_wp_idx < closest_idx:
             # If there is no red traffic light ahead, just adding next selected waypoints
             return self.accelerate_to_target_velocity(closest_idx, farthest_idx)
 
         else:
             # If there is a red traffic light ahead, modifying the waypoints velocity to gradually stop
             return self.stop_at_stop_line(closest_idx, farthest_idx)
-
-    def keep_stopped(self, closest_idx, farthest_idx):
-        final_waypoints = []
-
-        for i in LOOKAHEAD_WPS_MASK:
-            idx = closest_idx + i
-            if idx < farthest_idx:
-                wp = self.base_waypoints.waypoints[idx]
-                p = Waypoint()
-                p.pose = wp.pose
-                p.twist.twist.linear.x = 0.0
-                final_waypoints.append(p)
-
-        return final_waypoints
 
     def accelerate_to_target_velocity(self, closest_idx, farthest_idx):
         final_waypoints = []
