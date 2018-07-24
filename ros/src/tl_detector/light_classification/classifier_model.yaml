@@ -1,4 +1,4 @@
-backend: !!python/unicode 'tensorflow'
+backend: tensorflow
 class_name: Model
 config:
   input_layers:
