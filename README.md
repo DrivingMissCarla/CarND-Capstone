@@ -62,7 +62,7 @@ An additional change was made in ```src/waypoint_follower/src/pure_pursuit_core.
 
 ### Respect the target top speed set for the waypoints ```twist.twist.linear.x``` in ```waypoint_loader.py```
 
-No modifications were made to ```twist.twist.linear.x``` of the retrieved way points, except when decelerating in order to stop when a red (or yellow) light is detected ahead. In that case, the minimum between the already set velocity and the one calculated by decelerating method is chosen (see line 157 of ```src/waypoint_update/waypoint_updater.py```), meaning that the target top speed is respected.
+No modifications were made to ```twist.twist.linear.x``` of the retrieved way points, except when decelerating in order to stop when a red (or yellow) light is detected ahead. In that case, the minimum between the already set velocity and the one calculated by decelerating method is chosen (see line 167 of ```src/waypoint_update/waypoint_updater.py```), meaning that the target top speed is respected.
 
 Please see the following run targeted to 35 mph (56km/h).
 
@@ -76,17 +76,17 @@ The velocity already been set in the waypoints in general adheres to the given m
 
 ### Stop at traffic lights when needed.
 
-The ```tl_detector``` uses the traffic light classifier (which is stored in the files ```src/tl_detector/light_classification/classifier_model.yaml``` and ```src/tl_detector/light_classification/classifier_model_weights.h5```), to publish the found red and yellow lights (see lines 104 to 121 of ```src/tl_detector/tl_detector.py```), then in combination with a method to reduce the velocity on the ahead waypoints (see lines 130 to 158 of ```src/waypoint_updater/waypoint_updater.py```) provides the mechanism to stop when needed. You can see this mechanism in action in the following video.
+The ```tl_detector``` uses the traffic light classifier (which is stored in the files ```src/tl_detector/light_classification/classifier_model.yaml``` and ```src/tl_detector/light_classification/classifier_model_weights.h5```), to publish the found red, yellow and unknown lights (see lines 102 to 119 of ```src/tl_detector/tl_detector.py```), then in combination with a method to reduce the velocity on the ahead waypoints (see lines 141 to 170 of ```src/waypoint_updater/waypoint_updater.py```) provides the mechanism to stop when needed. You can see this mechanism in action in the following video.
 
 [![Capstone Project Run](http://img.youtube.com/vi/ga6i7Juu054/0.jpg)](https://www.youtube.com/watch?v=ga6i7Juu054)
 
 ### Stop and restart PID controllers depending on the state of ```/vehicle/dbw_enabled```
 
-The state of ```/vehicle/dbw_enabled``` is captured by the ```dbw_node``` (see lines 65 and 90-91 of ```src/twist_controller/dbw_node.py```), this state is passed to the ```twist_controller``` (see lines 83-84 of ```src/twist_controller/dbw_node.py```), then the twist controller does a reset if ```/vehicle/dbw_enabled``` is not enabled or does it is normal work if it is enabled (see lines 40-66 of ```src/twist_controller/twist_controller.py```).
+The state of ```/vehicle/dbw_enabled``` is captured by the ```dbw_node``` (see lines 72 and 90-91 of ```src/twist_controller/dbw_node.py```), this state is passed to the ```twist_controller``` (see lines 83-84 of ```src/twist_controller/dbw_node.py```), then the twist controller does a reset if ```/vehicle/dbw_enabled``` is not enabled or does it is normal work if it is enabled (see lines 40-66 of ```src/twist_controller/twist_controller.py```).
 
 ### Publish throttle, steering, and brake commands at 50Hz
 
-In the the ```dbw_node``` is implemented the loop in charge of publishing the throttle, steering and brake commands with a rate of 50Hz (see lines 74 and 78-88 of ```src/twist_controller/dbw_node.py```).
+In the the ```dbw_node``` is implemented the loop in charge of publishing the throttle, steering and brake commands with a rate of 50Hz (see lines 76 and 78-88 of ```src/twist_controller/dbw_node.py```).
 
 ## Apendix
 
