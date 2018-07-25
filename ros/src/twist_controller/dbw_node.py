@@ -25,7 +25,7 @@ Once you have the proposed throttle, brake, and steer values, publish it on the 
 that we have created in the `__init__` function.
 '''
 
-FREQUENCY = 50 # 50Hz
+FREQUENCY = 10 # 50Hz
 
 class DBWNode(object):
     def __init__(self):
