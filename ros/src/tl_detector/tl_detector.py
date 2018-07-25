@@ -128,7 +128,7 @@ class TLDetector(object):
             return TrafficLight.UNKNOWN
 
         # For testing just return light state
-        #return light.state
+        return light.state
 
         cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
         # Getting classification
