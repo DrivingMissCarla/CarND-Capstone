@@ -25,7 +25,7 @@ Once the ```waypoint_updater``` is publishing to ```/final_waypoints```, the ```
 #### Traffic Light Detection
 
 ##### Detection
-Detects the traffic light and its color from the ```/image_color``` topic. In order to do the color classification a CNN based in ResNet50 is used. The details of the model's building and training can be seen at https://github.com/DrivingMissCarla/Traffic-Light-Classifier (see file ```src/tl_detector/light_classification/tl_classifier.py```).
+Detects the traffic light and its color from the ```/image_color``` topic. In order to do the color classification a CNN based in SqueezeNet is used. The details of the model's building and training can be seen at https://github.com/DrivingMissCarla/Traffic-Light-Classifier (see file ```src/tl_detector/light_classification/tl_classifier.py```).
 
 ##### Waypoint publishing
 When the traffic light color is identified, the position (which can be found in ```/vehicle/traffic_lights```) of the light that requires a stop (red or yellow) is published in ```/traffic_waypoint``` (see file ```src/tl_detector/tl_detector.py```).
