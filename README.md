@@ -88,6 +88,25 @@ The state of ```/vehicle/dbw_enabled``` is captured by the ```dbw_node``` (see l
 
 In the the ```dbw_node``` is implemented the loop in charge of publishing the throttle, steering and brake commands with a rate of 50Hz (see lines 76 and 78-88 of ```src/twist_controller/dbw_node.py```).
 
+## Delivery
+
+### Performance issues during simulator tests
+
+Two branches have been added in the repository to handle latency issues during simulations with Udacity's workspace and VM if you don't have a GPU:
+
+* [sim](https://github.com/DrivingMissCarla/CarND-Capstone/tree/sim): the publish rate of throttle, steering and brake commands is set at 10Hz (instead of 50Hz).
+
+* [noclassif](https://github.com/DrivingMissCarla/CarND-Capstone/tree/noclassif): the light classifier is disabled and the current state of the traffic lights is used instead.
+
+### Run on Carla
+
+The following two videos have been retrieved from the RosBags recorded during the runs on Carla, i.e. the real-life tests.
+
+[![Carla's Run 1](http://img.youtube.com/vi/rmfb-hfoCcI/0.jpg)](https://www.youtube.com/watch?v=rmfb-hfoCcI)
+
+[![Carla's Run 2](http://img.youtube.com/vi/v1xkGzAYWKo/0.jpg)](https://www.youtube.com/watch?v=v1xkGzAYWKo)
+
+
 ## Apendix
 
 ### Installation
@@ -151,11 +170,3 @@ roslaunch launch/styx.launch
 4. Wait to see the mesage ```Traffic Light Classifier is READY``` in the console, meaning that the light classifier has been loaded
 
 5. Run the simulator
-
-### Performance issues during simulator tests
-
-Two branches have been added in the repository to handle latency issues during simulations with Udacity's workspace and VM if you don't have a GPU:
-
-* [sim](https://github.com/DrivingMissCarla/CarND-Capstone/tree/sim): the publish rate of throttle, steering and brake commands is set at 10Hz (instead of 50Hz).
-
-* [noclassif](https://github.com/DrivingMissCarla/CarND-Capstone/tree/noclassif): the light classifier is disabled and the current state of the traffic lights is used instead.
