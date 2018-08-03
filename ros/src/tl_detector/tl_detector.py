@@ -104,10 +104,15 @@ class TLDetector(object):
         of times till we start using it. Otherwise the previous stable state is
         used.
         '''
+        if self.last_state == TrafficLight.YELLOW and state == TrafficLight.GREEN:
+            self.upcoming_red_light_pub.publish(Int32(light_wp))
+            return
+
         if self.state != state:
             self.state_count = 0
             self.state = state
         elif self.state_count >= STATE_COUNT_THRESHOLD:
+            rospy.logdebug('State recorded, prevous: {}, new: {}.'.format(self.last_state, self.state))
             self.last_state = self.state
             light_wp = light_wp if state != TrafficLight.GREEN else -1
             self.last_wp = light_wp
